@@ -1,0 +1,128 @@
+public class Order {
+
+    private Customer customer;
+    private MenuItem item1;
+    private MenuItem item2;
+    private MenuItem item3;
+    private int itemCount;
+    private String orderId;
+
+    
+    public Order(String orderId, Customer customer) {
+        if (orderId == null || orderId.isBlank()) {
+            throw new IllegalArgumentException("Order ID cannot be blank.");
+        }
+        if (customer == null) {
+            throw new IllegalArgumentException("Customer cannot be null.");
+        }
+        this.orderId = orderId;
+        this.customer = customer;
+        this.item1 = null;
+        this.item2 = null;
+        this.item3 = null;
+        this.itemCount = 0;
+    }
+
+    public boolean addItem(MenuItem item) {
+        if (item == null) {
+            return false;
+        } else if (itemCount >= 3) {
+            return false;
+        } else if (item1 == null) {
+            item1 = item;
+        } else if (item2 == null) {
+            item2 = item;
+        } else {
+            item3 = item;
+        }
+        itemCount++;
+        return true;
+    }
+
+    public double computeSubtotal() {
+        double subtotal = 0;
+        if (item1 != null) subtotal += item1.computePrice();
+        if (item2 != null) subtotal += item2.computePrice();
+        if (item3 != null) subtotal += item3.computePrice();
+        return subtotal;
+    }
+
+    public double computeTotal() {
+        double subtotal = computeSubtotal();
+        if (customer.isStudent()) {
+            return subtotal - (subtotal * 0.10);
+        }
+        return subtotal;
+    }
+
+    public double computeTotal(double voucher) {
+        double safeVoucher = voucher < 0 ? 0 : voucher;
+        double total = computeTotal() - safeVoucher;
+        return Math.max(total, 0);
+    }
+
+    public void printReceipt() {
+        System.out.println("\nOrder #" + orderId + " — "
+                + customer.getName()
+                + (customer.isStudent() ? " (Student)" : ""));
+
+        if (item1 != null) {
+            System.out.printf("  %-40s %.2f%n",
+                    item1.getDescription(), item1.computePrice());
+        }
+        if (item2 != null) {
+            System.out.printf("  %-40s %.2f%n",
+                    item2.getDescription(), item2.computePrice());
+        }
+        if (item3 != null) {
+            System.out.printf("  %-40s %.2f%n",
+                    item3.getDescription(), item3.computePrice());
+        }
+
+        double subtotal = computeSubtotal();
+        double total = computeTotal();
+        double discount = subtotal - total;
+
+        System.out.printf("  Subtotal: %.2f%n", subtotal);
+        if (customer.isStudent()) {
+            System.out.printf("  Student discount (10%%): -%.2f%n", discount);
+        }
+        System.out.printf("  TOTAL: %.2f%n", total);
+        customer.addPoints(total);
+        System.out.println("  Loyalty points: " + customer.getLoyaltyPoints());
+    }
+
+    public void printReceipt(double voucher) {
+        System.out.println("\nOrder #" + orderId + " — "
+                + customer.getName()
+                + (customer.isStudent() ? " (Student)" : ""));
+
+        if (item1 != null) {
+            System.out.printf("  %-40s %.2f%n",
+                    item1.getDescription(), item1.computePrice());
+        }
+        if (item2 != null) {
+            System.out.printf("  %-40s %.2f%n",
+                    item2.getDescription(), item2.computePrice());
+        }
+        if (item3 != null) {
+            System.out.printf("  %-40s %.2f%n",
+                    item3.getDescription(), item3.computePrice());
+        }
+
+        double subtotal = computeSubtotal();
+        double discountedTotal = computeTotal();
+        double discount = subtotal - discountedTotal;
+        double appliedVoucher = Math.min(Math.max(voucher, 0), discountedTotal);
+        double total = discountedTotal - appliedVoucher;
+
+        System.out.printf("  Subtotal: %.2f%n", subtotal);
+        if (customer.isStudent()) {
+            System.out.printf("  Student discount (10%%): -%.2f%n", discount);
+        }
+        System.out.printf("  Voucher: -%.2f%n", appliedVoucher);
+        System.out.printf("  TOTAL: %.2f%n", total);
+        customer.addPoints(total);
+        System.out.println("  Loyalty points: " + customer.getLoyaltyPoints());
+    }
+}
